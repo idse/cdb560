@@ -79,8 +79,10 @@ def _(mo):
 
 @app.cell
 def _():
-    # the folder that holds all the images, relative to the folder of this project
-    data_folder = "/Users/idse/Library/CloudStorage/Dropbox/work/0_teaching/CDB560_qbio/data/200808_pERK time series 2/MIP"
+    from pathlib import Path
+
+    # setup.sh downloads the lecture images here, outside the course repo.
+    data_folder = str(Path.home() / "cdb560-data" / "pERK")
 
     # folder + "/" + filename gives the full path of each file
     nuclear_file = data_folder + "/A2_200819_ppERK_timeseries_E6T_MIP_p0006_w0000.tif"

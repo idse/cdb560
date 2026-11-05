@@ -62,7 +62,7 @@ echo "CDB560 setup: this prepares your computer for the course."
 echo "It can take a few minutes the first time. Please don't close this window."
 
 # ---------------------------------------------------------------- 1. uv
-step "Step 1 of 5: the 'uv' tool"
+step "Step 1 of 6: the 'uv' tool"
 
 # uv installs itself in ~/.local/bin; make sure we look there even if the
 # terminal's PATH doesn't (yet).
@@ -151,7 +151,7 @@ if [ "$UV_WAS_ON_PATH" = 1 ]; then
 fi
 
 # ---------------------------------------------------------------- 2. packages
-step "Step 2 of 5: Python and the course packages"
+step "Step 2 of 6: Python and the course packages"
 say "Installing (this is quick if it was done before)..."
 
 if ! uv sync --compile-bytecode >>"$LOG_FILE" 2>&1; then
@@ -162,7 +162,7 @@ say "Python packages are installed."
 SUMMARY+=("Python packages: installed and up to date (folder .venv)")
 
 # ---------------------------------------------------------------- 3. start-notebook.sh
-step "Step 3 of 5: the notebook launcher"
+step "Step 3 of 6: the notebook launcher"
 
 if [ ! -f start-notebook.sh ]; then
     fail "I can't find the file start-notebook.sh in the course folder." \
@@ -181,7 +181,7 @@ else
 fi
 
 # ---------------------------------------------------------------- 4. VS Code extensions
-step "Step 4 of 5: VS Code extensions"
+step "Step 4 of 6: VS Code extensions"
 
 # Great Lakes exposes code-server; desktop VS Code exposes code.
 EDITOR_CLI=""
@@ -223,7 +223,7 @@ else
 fi
 
 # ---------------------------------------------------------------- 4. check
-step "Step 5 of 5: checking that everything works"
+step "Step 5 of 6: checking that everything works"
 
 # Read the package list from pyproject.toml and try to import each one,
 # so this check always matches what the course needs.
@@ -263,6 +263,14 @@ if [ "$CHECK_STATUS" -ne 0 ]; then
         "Run ./setup.sh again. If the problem stays, ask a TA and show them this window."
 fi
 SUMMARY+=("Check: all course packages (including marimo) load correctly")
+
+# Download once; later runs check the images and skip completed downloads.
+step "Step 6 of 6: lecture images"
+if ! uv run python scripts/download_data.py; then
+    fail "The lecture images are not ready yet." \
+        "Check your internet connection and run bash setup.sh again. If it still fails, ask a TA."
+fi
+SUMMARY+=("Lecture images: checked and ready in ~/cdb560-data/pERK")
 
 # ---------------------------------------------------------------- summary
 echo ""
