@@ -1,0 +1,13 @@
+[project]
+name = "cdb560"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "marimo>=0.25.2",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "scikit-image>=0.26.0",
+    "tifffile>=2026.10.15",
+]
+[tool.marimo.runtime]
+watcher_on_save = "autorun"
