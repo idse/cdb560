@@ -62,7 +62,7 @@ echo "CDB560 setup: this prepares your computer for the course."
 echo "It can take a few minutes the first time. Please don't close this window."
 
 # ---------------------------------------------------------------- 1. uv
-step "Step 1 of 4: the 'uv' tool"
+step "Step 1 of 5: the 'uv' tool"
 
 # uv installs itself in ~/.local/bin; make sure we look there even if the
 # terminal's PATH doesn't (yet).
@@ -151,7 +151,7 @@ if [ "$UV_WAS_ON_PATH" = 1 ]; then
 fi
 
 # ---------------------------------------------------------------- 2. packages
-step "Step 2 of 4: Python and the course packages"
+step "Step 2 of 5: Python and the course packages"
 say "Installing (this is quick if it was done before)..."
 
 if ! uv sync --compile-bytecode >>"$LOG_FILE" 2>&1; then
@@ -162,7 +162,7 @@ say "Python packages are installed."
 SUMMARY+=("Python packages: installed and up to date (folder .venv)")
 
 # ---------------------------------------------------------------- 3. start-notebook.sh
-step "Step 3 of 4: the notebook launcher"
+step "Step 3 of 5: the notebook launcher"
 
 if [ ! -f start-notebook.sh ]; then
     fail "I can't find the file start-notebook.sh in the course folder." \
@@ -180,8 +180,50 @@ else
     SUMMARY+=("start-notebook.sh: made executable")
 fi
 
+# ---------------------------------------------------------------- 4. VS Code extensions
+step "Step 4 of 5: VS Code extensions"
+
+# Great Lakes exposes code-server; desktop VS Code exposes code.
+EDITOR_CLI=""
+for candidate in code-server code; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+        EDITOR_CLI="$candidate"
+        break
+    fi
+done
+EXTENSIONS_OK=1
+if [ -n "$EDITOR_CLI" ] && INSTALLED_EXTENSIONS="$("$EDITOR_CLI" --list-extensions 2>>"$LOG_FILE")"; then
+    for extension in ms-python.python anthropic.claude-code; do
+        if printf '%s\n' "$INSTALLED_EXTENSIONS" | grep -Fxiq "$extension"; then
+            say "$extension is already installed. Skipping."
+        elif "$EDITOR_CLI" --install-extension "$extension" >>"$LOG_FILE" 2>&1; then
+            if VERIFIED_EXTENSIONS="$("$EDITOR_CLI" --list-extensions 2>>"$LOG_FILE")" \
+                && printf '%s\n' "$VERIFIED_EXTENSIONS" | grep -Fxiq "$extension"; then
+                say "Installed $extension."
+            else
+                say "I could not confirm that $extension was installed."
+                EXTENSIONS_OK=0
+            fi
+        else
+            say "I could not install $extension automatically."
+            EXTENSIONS_OK=0
+        fi
+    done
+else
+    say "Automatic extension installation is not available in this terminal."
+    EXTENSIONS_OK=0
+fi
+if [ "$EXTENSIONS_OK" = 1 ]; then
+    SUMMARY+=("VS Code extensions: Python and Claude Code are installed")
+else
+    say "Open View > Extensions in VS Code, search for Python and Claude Code,"
+    say "and click Install for each. If that fails, ask a TA."
+    say "Technical details for your TA are saved in: $LOG_FILE"
+    SUMMARY+=("VS Code extensions: manual installation needed (View > Extensions)")
+fi
+
 # ---------------------------------------------------------------- 4. check
-step "Step 4 of 4: checking that everything works"
+step "Step 5 of 5: checking that everything works"
 
 # Read the package list from pyproject.toml and try to import each one,
 # so this check always matches what the course needs.
@@ -225,7 +267,11 @@ SUMMARY+=("Check: all course packages (including marimo) load correctly")
 # ---------------------------------------------------------------- summary
 echo ""
 echo "=========================================="
-echo " Setup finished: everything works."
+if [ "$EXTENSIONS_OK" = 1 ]; then
+    echo " Setup finished: all checks passed."
+else
+    echo " Python setup finished; extensions need attention."
+fi
 echo "=========================================="
 for line in "${SUMMARY[@]}"; do
     echo "  - $line"
