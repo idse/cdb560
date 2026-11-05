@@ -26,7 +26,8 @@ if [[ "$NODE" == *.arc-ts.umich.edu ]]; then
     echo "  Leave this terminal open. Press Ctrl+C here to stop marimo."
     echo ""
 
-    exec uv run marimo edit "$@" \
+    # Hide the startup banner and watch notice; keep errors visible.
+    exec uv run marimo --quiet --log-level ERROR edit "$@" \
         --watch --headless \
         --host 0.0.0.0 --port "$PORT" \
         --base-url "$BASE" \
@@ -38,5 +39,5 @@ else
     echo "  Leave this terminal open. Press Ctrl+C here to stop marimo."
     echo ""
 
-    exec uv run marimo edit "$@" --watch
+    exec uv run marimo --quiet --log-level ERROR edit "$@" --watch
 fi
